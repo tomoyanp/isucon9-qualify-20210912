@@ -511,20 +511,20 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 }
 
 type ItemJoinUserSimple struct {
-	UID           int64     `json:"id"`
-	UAccountName  string    `json:"account_name"`
-	UNumSellItems int       `json:"num_sell_items"`
-	IID           int64     `json:"id" db:"id"`
-	ISellerID     int64     `json:"seller_id" db:"seller_id"`
-	IBuyerID      int64     `json:"buyer_id" db:"buyer_id"`
-	IStatus       string    `json:"status" db:"status"`
-	IName         string    `json:"name" db:"name"`
-	IPrice        int       `json:"price" db:"price"`
-	IDescription  string    `json:"description" db:"description"`
-	IImageName    string    `json:"image_name" db:"image_name"`
-	ICategoryID   int       `json:"category_id" db:"category_id"`
-	ICreatedAt    time.Time `json:"-" db:"created_at"`
-	IUpdatedAt    time.Time `json:"-" db:"updated_at"`
+	UID           int64     `json:"id" db:"u_id"`
+	UAccountName  string    `json:"account_name" db:"u_account_name"`
+	UNumSellItems int       `json:"num_sell_items" db:"u_num_sell_items"`
+	IID           int64     `json:"id" db:"i_id"`
+	ISellerID     int64     `json:"seller_id" db:"i_seller_id"`
+	IBuyerID      int64     `json:"buyer_id" db:"i_buyer_id"`
+	IStatus       string    `json:"status" db:"i_status"`
+	IName         string    `json:"name" db:"i_name"`
+	IPrice        int       `json:"price" db:"i_price"`
+	IDescription  string    `json:"description" db:"i_description"`
+	IImageName    string    `json:"image_name" db:"i_image_name"`
+	ICategoryID   int       `json:"category_id" db:"i_category_id"`
+	ICreatedAt    time.Time `json:"-" db:"i_created_at"`
+	IUpdatedAt    time.Time `json:"-" db:"i_updated_at"`
 }
 
 func getNewItems(w http.ResponseWriter, r *http.Request) {
