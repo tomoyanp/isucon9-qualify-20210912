@@ -72,3 +72,6 @@ CREATE TABLE `categories` (
   `parent_id` int unsigned NOT NULL,
   `category_name` varchar(191) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
+
+// index作成
+CREATE INDEX items_index1 on items(created_at, id);
