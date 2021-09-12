@@ -419,7 +419,7 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 
 func createCategoryCache(q sqlx.Queryer) (cacheCategory map[int]Category, err error) {
 	//SQL叩いいてmapに突っ込む
-	cacheCategory = make(map[int]Category);
+	cacheCategory = make(map[int]Category)
 	query := "SELECT id, parent_id, category_name FROM categories"
 	categories := []Category{}
 	err = dbx.Select(&categories, query)
@@ -534,7 +534,7 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 
 	res := resInitialize{
 		// キャンペーン実施時には還元率の設定を返す。詳しくはマニュアルを参照のこと。
-		Campaign: 0,
+		Campaign: 4,
 		// 実装言語を返す
 		Language: "Go",
 	}
