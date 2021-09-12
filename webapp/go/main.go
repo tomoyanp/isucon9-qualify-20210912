@@ -268,7 +268,7 @@ type resSetting struct {
 	Categories        []Category `json:"categories"`
 }
 
-var cacheCategory = map[int]Category{}
+var cacheCategory = make(map[int]Category)
 
 func init() {
 	store = sessions.NewCookieStore([]byte("abc"))
@@ -322,6 +322,7 @@ func main() {
 	//
 	cacheCategory, err = createCategoryCache(dbx)
 	if err != nil {
+		log.Print(err)
 		log.Fatalf("failed to cache categories: %s.", err.Error())
 	}
 
@@ -418,11 +419,15 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 
 func createCategoryCache(q sqlx.Queryer) (cacheCategory map[int]Category, err error) {
 	//SQL叩いいてmapに突っ込む
-	query := "SELECT * FROM categories"
+	cacheCategory = make(map[int]Category);
+	query := "SELECT id, parent_id, category_name FROM categories"
 	categories := []Category{}
-	err = sqlx.Get(q, &categories, query)
+	err = dbx.Select(&categories, query)
 	for _, category := range categories {
 		cacheCategory[category.ID], err = origin_getCategoryByID(q, category.ID)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 	//return
 	return cacheCategory, err
@@ -432,7 +437,12 @@ func createCategoryCache(q sqlx.Queryer) (cacheCategory map[int]Category, err er
 // Fix okuaki
 //
 func origin_getCategoryByID(q sqlx.Queryer, categoryID int) (category Category, err error) {
-	err = sqlx.Get(q, &category, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
+	categories := []Category{}
+	err = dbx.Select(&categories, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
+	if err != nil {
+		log.Print(err)
+	}
+	category = categories[0]
 	if category.ParentID != 0 {
 		parentCategory, err := origin_getCategoryByID(q, category.ParentID)
 		if err != nil {
@@ -593,7 +603,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			users.num_sell_items as u_num_sell_items
 			FROM items LEFT JOIN users
 			ON items.seller_id = users.id
-			WHERE status IN (?,?) AND (created_at < ?  OR (created_at <= ? AND id < ?)) ORDER BY created_at DESC, id DESC LIMIT ?
+			WHERE items.status IN (?,?) AND (items.created_at < ?  OR (items.created_at <= ? AND items.id < ?)) ORDER BY items.created_at DESC, items.id DESC LIMIT ?
 		`
 		err := dbx.Select(&itemJoinUserSimples,
 			query,
@@ -628,7 +638,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			users.num_sell_items as u_num_sell_items
 			FROM items LEFT JOIN users
 			ON items.seller_id = users.id
-			WHERE status IN (?,?) ORDER BY created_at DESC, id DESC LIMIT ?
+			WHERE items.status IN (?,?) ORDER BY items.created_at DESC, items.id DESC LIMIT ?
 		`
 		err := dbx.Select(&itemJoinUserSimples,
 			query,
@@ -753,7 +763,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			users.num_sell_items as u_num_sell_items
 			FROM items LEFT JOIN users
 			ON items.seller_id = users.id
-			WHERE status IN (?,?) AND category_id IN (?) AND (created_at < ?  OR (created_at <= ? AND id < ?)) ORDER BY created_at DESC, id DESC LIMIT ?
+			WHERE items.status IN (?,?) AND items.category_id IN (?) AND (items.created_at < ?  OR (items.created_at <= ? AND items.id < ?)) ORDER BY items.created_at DESC, items.id DESC LIMIT ?
 		`
 
 		inQuery, inArgs, err = sqlx.In(
@@ -790,7 +800,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			users.num_sell_items as u_num_sell_items
 			FROM items LEFT JOIN users
 			ON items.seller_id = users.id
-			WHERE status IN (?,?) AND category_id IN (?) ORDER BY created_at DESC, id DESC LIMIT ?
+			WHERE items.status IN (?,?) AND items.category_id IN (?) ORDER BY items.created_at DESC, items.id DESC LIMIT ?
 		`
 
 		inQuery, inArgs, err = sqlx.In(
@@ -1029,7 +1039,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			users.num_sell_items as u_num_sell_items
 			FROM items LEFT JOIN users
 			ON items.seller_id = users.id
-			WHERE (seller_id = ? OR buyer_id = ?) AND status IN (?,?,?,?,?) AND (created_at < ?  OR (created_at <= ? AND id < ?)) ORDER BY created_at DESC, id DESC LIMIT ?
+			WHERE (items.seller_id = ? OR items.buyer_id = ?) AND items.status IN (?,?,?,?,?) AND (items.created_at < ?  OR (items.created_at <= ? AND items.id < ?)) ORDER BY items.created_at DESC, items.id DESC LIMIT ?
 		`
 		err := tx.Select(&itemJoinUserSimples,
 			query,
@@ -1070,7 +1080,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			users.num_sell_items as u_num_sell_items
 			FROM items LEFT JOIN users
 			ON items.seller_id = users.id
-			WHERE (seller_id = ? OR buyer_id = ?) AND status IN (?,?,?,?,?) ORDER BY created_at DESC, id DESC LIMIT ?
+			WHERE (items.seller_id = ? OR items.buyer_id = ?) AND items.status IN (?,?,?,?,?) ORDER BY items.created_at DESC, items.id DESC LIMIT ?
 		`
 
 		err := tx.Select(&itemJoinUserSimples,
@@ -1144,7 +1154,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 
 		transactionEvidence := TransactionEvidence{}
-		err = tx.Get(&transactionEvidence, "SELECT * FROM `transaction_evidences` WHERE `item_id` = ?", item.ID)
+		err = tx.Get(&transactionEvidence, "SELECT * FROM `transaction_evidences` WHERE `item_id` = ?", item.IID)
 		if err != nil && err != sql.ErrNoRows {
 			// It's able to ignore ErrNoRows
 			log.Print(err)
