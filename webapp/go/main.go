@@ -1195,7 +1195,8 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 
 			itemDetail.TransactionEvidenceID = transactionEvidence.ID
 			itemDetail.TransactionEvidenceStatus = transactionEvidence.Status
-			itemDetail.ShippingStatus = ssr.Status
+			//itemDetail.ShippingStatus = ssr.Status
+			itemDetail.ShippingStatus = shipping.Status
 		}
 
 		itemDetails = append(itemDetails, itemDetail)
@@ -1792,10 +1793,6 @@ func postShipDone(w http.ResponseWriter, r *http.Request) {
 	reqpsd := reqPostShipDone{}
 
 	err := json.NewDecoder(r.Body).Decode(&reqpsd)
-	if err != nil {
-		outputErrorMsg(w, http.StatusBadRequest, "json decode error")
-		return
-	}
 
 	csrfToken := reqpsd.CSRFToken
 	itemID := reqpsd.ItemID
